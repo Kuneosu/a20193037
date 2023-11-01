@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp">
+    <TextView
+        android:id="@+id/memo_tv_created"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="작성일자 : "
+        android:textSize="20dp"
+        android:layout_weight="1"/>
+    <TextView
+        android:id="@+id/memo_tv_modified"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="최종수정일자 : "
+        android:textSize="20dp"
+        android:layout_weight="1"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/memo_tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="제목 : "
+        android:textSize="20dp"
+        android:layout_weight="1"/>
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="0.3">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="내용 : "
+            android:textSize="20dp"
+            android:layout_weight="1"/>
+        <TextView
+            android:id="@+id/memo_tv_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="20dp"
+            android:layout_weight="0.2"
+            android:scrollbars="vertical" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center">
+        <Button
+            android:id="@+id/memo_btn_edit"
+            android:layout_width="95dp"
+            android:layout_height="match_parent"
+            android:text="수정"
+            android:layout_weight="1"
+            android:layout_marginRight="5dp"
+            />
+        <Button
+            android:id="@+id/memo_btn_del"
+            android:layout_width="95dp"
+            android:layout_height="match_parent"
+            android:text="삭제"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="5dp"
+            />
+        <Button
+            android:id="@+id/memo_btn_back"
+            android:layout_width="95dp"
+            android:layout_height="match_parent"
+            android:text="돌아가기"
+            android:layout_weight="1"
+            android:layout_marginLeft="5dp"
+            />
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>
