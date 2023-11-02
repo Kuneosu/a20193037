@@ -6,12 +6,19 @@
 
 package deu.soft.a20193037;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +27,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,6 +37,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedDispatcher;
 
 import org.w3c.dom.Text;
 
@@ -39,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnSearch;
     TextView tvSearch;
     myAdapter adapter;
+
+
 
     // 타 액티비티에서 MainActivity 에 접근하기 위한 Context 변수
     public static Context context;
@@ -83,10 +94,23 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MainActivity INTENT", ""+data.getId());
                 // 선택된 아이템의 ID를 intent로 전달
                 intent.putExtra("id",data.getId());
-                startActivity(intent);
+                resultLauncher.launch(intent);
             }
         });
     }
+
+    ActivityResultLauncher<Intent> resultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK){
+                        Log.d("CHECKSUM","MainActivity로 돌아왔다");
+                        displayList();
+                    }
+                }
+            }
+    );
 
     void displayList(){
         // myDBHelper의 읽기모드 객체를 가져와 SQLiteDatabase에 담아 사용준비
@@ -144,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.createMemo:
                 // 새 메모 작성 이벤트
                 Intent intent = new Intent(getApplicationContext(), CreateActivity.class);
-                startActivity(intent);
+                resultLauncher.launch(intent);
                 return true;
             case R.id.devInfo:
                 // 개발자 정보 이벤트
@@ -163,5 +187,27 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("확인",null);
         AlertDialog msgDlg = msgBuilder.create();
         msgDlg.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("CHECKSUM", "onDestroy: main");
+    }
+
+    // 뒤로가기 두 번 클릭시 액티비티 종료
+    private long backKeyPressedTime = 0;
+    // 기존 onBackPressed 기능을 버리기 위해 super call 을 사용하지 않음.
+    @SuppressLint("MissingSuperCall")
+    public void onBackPressed(){
+        if(System.currentTimeMillis() > backKeyPressedTime + 2000){
+            backKeyPressedTime = System.currentTimeMillis();
+            Toast.makeText(this, "한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(System.currentTimeMillis()<=backKeyPressedTime + 2000){
+            finish();
+        }
     }
 }

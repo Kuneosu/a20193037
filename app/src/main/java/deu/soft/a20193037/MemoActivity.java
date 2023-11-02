@@ -6,6 +6,8 @@
 
 package deu.soft.a20193037;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -53,6 +55,7 @@ public class MemoActivity extends AppCompatActivity {
                 // 선택된 아이템의 ID를 intent로 전달
                 intent.putExtra("id",id);
                 startActivity(intent);
+                setResult(Activity.RESULT_OK);
                 finish();
             }
         });
@@ -66,6 +69,8 @@ public class MemoActivity extends AppCompatActivity {
         memoBtnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
+                setResult(Activity.RESULT_OK);
                 finish();
             }
         });
@@ -78,6 +83,9 @@ public class MemoActivity extends AppCompatActivity {
         db.execSQL("DELETE FROM memo20193037 WHERE id="+id);
         Toast.makeText(getApplicationContext(), id+"번 메모가 삭제되었습니다.", Toast.LENGTH_SHORT).show();
         db.close();
+
+        Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
+        setResult(Activity.RESULT_OK);
         finish();
     }
 
@@ -126,7 +134,25 @@ public class MemoActivity extends AppCompatActivity {
     // 삭제 시 액티비티가 종료되면서 MainActivity의 리스트뷰를 갱신한다.
     @Override
     protected void onDestroy() {
+        Log.d("CHECKSUM", "onDestroy: Memo");
         super.onDestroy();
-        ((MainActivity)MainActivity.context).displayList();
+    }
+    
+    // 뒤로가기 두 번 클릭시 액티비티 종료
+    private long backKeyPressedTime = 0;
+    // 기존 onBackPressed 기능을 버리기 위해 super call 을 사용하지 않음.
+    @SuppressLint("MissingSuperCall")
+    public void onBackPressed(){
+        if(System.currentTimeMillis() > backKeyPressedTime + 2000){
+            backKeyPressedTime = System.currentTimeMillis();
+            Toast.makeText(this, "한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(System.currentTimeMillis()<=backKeyPressedTime + 2000){
+            Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
+            setResult(Activity.RESULT_OK);
+            finish();
+        }
     }
 }
