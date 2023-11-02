@@ -24,6 +24,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class EditActivity extends AppCompatActivity {
+    AppDatabase db;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,33 +62,19 @@ public class EditActivity extends AppCompatActivity {
 
     // 기존 메모를 불러옵니다
     void originMemo(int id){
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
-
+        db = AppDatabase.getDBInstance(this);
         EditText editEditTitle = (EditText) findViewById(R.id.edit_edit_title);
         EditText editEditContent = (EditText) findViewById(R.id.edit_edit_content);
-
-        Cursor cursor = db.rawQuery("SELECT * FROM memo20193037 WHERE id="+id,null);
-
-        while (cursor.moveToNext()) {
-            editEditTitle.setText(cursor.getString(1));
-            editEditContent.setText(cursor.getString(2));
-        }
-
-        cursor.close();
-        db.close();
+        MemoEntity memo = db.memoDao().loadMemo(id);
+        // 각 에디트텍스트에 기존 메모 내용 삽입
+        editEditTitle.setText(memo.title);
+        editEditContent.setText(memo.content);
     }
 
     // 새로 작성한 메모를 DB에 저장합니다
     void EditMemo(String title, String content,int id){
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getWritableDatabase();
-
-        String sql = "UPDATE memo20193037 SET title='"+title+"', content='"+content+"', last_modified_date=CURRENT_TIMESTAMP " +
-                "WHERE id="+id+";";
-        db.execSQL(sql);
-        db.close();
-
+        db = AppDatabase.getDBInstance(this);
+        db.memoDao().updateMemo(title,content,id);
         setResult(Activity.RESULT_OK);
         finish();
     }

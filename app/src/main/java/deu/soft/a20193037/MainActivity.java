@@ -11,23 +11,14 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.room.Room;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -37,9 +28,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedDispatcher;
-
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -47,12 +35,9 @@ public class MainActivity extends AppCompatActivity {
     ListView memoList;
     Button btnSearch;
     TextView tvSearch;
-    myAdapter adapter;
-
-
-
-    // 타 액티비티에서 MainActivity 에 접근하기 위한 Context 변수
-    public static Context context;
+    MyAdapter adapter;
+    List<MemoEntity> memoData;
+    AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         ActionBar ac = getSupportActionBar();
         ac.setTitle("내 메모");
 
-        context = this;
         memoList = (ListView) findViewById(R.id.memoList);
 
         // 첫 실행 시 데이터베이스로 리스트뷰 채우기
@@ -88,70 +72,53 @@ public class MainActivity extends AppCompatActivity {
         memoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                // 선택된 아이템에 대한 myAdapterData 변수
-                myAdapterData data = (myAdapterData) adapter.getItem(i);
+                // 선택된 아이템에 대한 MemoEntity
+                MemoEntity data = (MemoEntity) adapter.getItem(i);
                 Intent intent = new Intent(getApplicationContext(), MemoActivity.class);
-                Log.d("MainActivity INTENT", ""+data.getId());
                 // 선택된 아이템의 ID를 intent로 전달
-                intent.putExtra("id",data.getId());
+                intent.putExtra("id",data.id);
                 resultLauncher.launch(intent);
             }
         });
     }
 
+    // MainActivity로 돌아올 때 displayList()를 실행시켜 화면을 초기화
     ActivityResultLauncher<Intent> resultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == Activity.RESULT_OK){
-                        Log.d("CHECKSUM","MainActivity로 돌아왔다");
                         displayList();
                     }
-                }
-            }
-    );
+                }});
 
+    // 화면에 표시된 리스트뷰에 현재 데이터베이스에 있는 메모들을 불러와 어댑터로 부착
     void displayList(){
-        // myDBHelper의 읽기모드 객체를 가져와 SQLiteDatabase에 담아 사용준비
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
-        adapter = new myAdapter();
-
-        // Cursor라는 그릇에 목록을 담아주기
-        Cursor cursor = db.rawQuery("SELECT * FROM memo20193037",null);
-
-        // 목록의 개수만큼 순회하여 adapter에 있는 list배열에 add
-        while(cursor.moveToNext()){
-            adapter.addItemToList(cursor.getInt(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
-        }
-
-        cursor.close();
-        db.close();
-
+        // db 변수에 데이터베이스 불러오기
+        db = AppDatabase.getDBInstance(this);
+        // memoData 변수에 데이터베이스에 저장된 메모 튜플을 모두 불러와 저장
+        memoData = db.memoDao().getAllMemos();
+        adapter = new MyAdapter();
+        // 어댑터에 불러온 메모 데이터들 저장
+        adapter.setData(memoData);
+        // 불러온 메모 데이터들이 저장된 어댑터를 리스트뷰에 부착
         memoList.setAdapter(adapter);
     }
 
+    // 입력받은 검색어로 검색 SQL문 실행 후 어댑터 업데이트
     void SearchList(String search){
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
-
-        Cursor cursor = db.rawQuery("SELECT * FROM memo20193037 " +
-                "WHERE title LIKE '%"+search+"%' OR content LIKE '%"+search+"%'",null);
-
-        adapter = new myAdapter();
-
-        while(cursor.moveToNext()){
-            adapter.addItemToList(cursor.getInt(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4));
-        }
-
-        cursor.close();
-        db.close();
-
+        db = AppDatabase.getDBInstance(this);
+        // memoDAO에 저장해둔 검색 SQL문을 불러와 입력받은 검색어 대입 후 실행
+        // 결과값을 memoData에 저장
+        memoData = db.memoDao().searchMemo(search);
+        adapter = new MyAdapter();
+        // 어댑터에 불러온 메모 데이터를 저장
+        adapter.setData(memoData);
         // 검색 결과가 없을 경우 예외처리
         if(adapter.getCount()==0)
             Toast.makeText(getApplicationContext(), "'"+search+"' 에 대한 검색 결과가 없습니다.", Toast.LENGTH_SHORT).show();
-
+        // 업데이트된 어댑터를 리스트뷰에 부착
         memoList.setAdapter(adapter);
     }
 
@@ -192,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("CHECKSUM", "onDestroy: main");
     }
 
     // 뒤로가기 두 번 클릭시 액티비티 종료

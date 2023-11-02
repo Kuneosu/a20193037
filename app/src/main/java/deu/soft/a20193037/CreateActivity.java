@@ -21,7 +21,11 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.List;
+
 public class CreateActivity extends AppCompatActivity {
+    AppDatabase db ;
+    List<MemoEntity> memoData;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,13 +64,8 @@ public class CreateActivity extends AppCompatActivity {
 
     // 입력받은 내용을 토대로 메모를 DB에 저장
     void SaveMemo(String title,String content){
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getWritableDatabase();
-
-        String sql = "INSERT INTO memo20193037(title,content) VALUES('"+title+"','"+content+"');";
-        db.execSQL(sql);
-        db.close();
-
+        db = AppDatabase.getDBInstance(this);
+        db.memoDao().createMemo(title,content);
         setResult(Activity.RESULT_OK);
         finish();
     }

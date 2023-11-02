@@ -25,9 +25,12 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.List;
+
 public class MemoActivity extends AppCompatActivity {
     TextView memoTvCreated, memoTvModified, memoTvTitle, memoTvContent;
     Button memoBtnEdit, memoBtnDel, memoBtnBack;
+    AppDatabase db;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,12 +80,10 @@ public class MemoActivity extends AppCompatActivity {
     }
 
     void deleteMemo(int id){
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getWritableDatabase();
+        db = AppDatabase.getDBInstance(this);
 
-        db.execSQL("DELETE FROM memo20193037 WHERE id="+id);
+        db.memoDao().deleteMemo(id);
         Toast.makeText(getApplicationContext(), id+"번 메모가 삭제되었습니다.", Toast.LENGTH_SHORT).show();
-        db.close();
 
         Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
         setResult(Activity.RESULT_OK);
@@ -90,9 +91,7 @@ public class MemoActivity extends AppCompatActivity {
     }
 
     void displayMemo(int id){
-        // myDBHelper의 읽기모드 객체를 가져와 SQLiteDatabase에 담아 사용준비
-        myDBHelper helper = new myDBHelper(this);
-        SQLiteDatabase db = helper.getReadableDatabase();
+        db = AppDatabase.getDBInstance(this);
 
         memoTvCreated = (TextView) findViewById(R.id.memo_tv_created);
         memoTvModified = (TextView) findViewById(R.id.memo_tv_modified);
@@ -101,19 +100,17 @@ public class MemoActivity extends AppCompatActivity {
 
         memoTvContent.setMovementMethod(new ScrollingMovementMethod());
 
-        Cursor cursor = db.rawQuery("SELECT * FROM memo20193037 WHERE id="+id,null);
+        // 해당 id 의 메모 내용을 가져오는 SQL 문
+        MemoEntity memoData = db.memoDao().loadMemo(id);
 
-        while (cursor.moveToNext()) {
-            memoTvCreated.setText(memoTvCreated.getText()+cursor.getString(3));
-            memoTvTitle.setText(memoTvTitle.getText()+cursor.getString(1));
-            memoTvContent.setText(memoTvContent.getText()+cursor.getString(2));
-            if(cursor.getString(4) != null){
-                memoTvModified.setVisibility(View.VISIBLE);
-                memoTvModified.setText(memoTvModified.getText()+cursor.getString(4));
-            }
+        memoTvCreated.setText(memoTvCreated.getText()+memoData.createdDate);
+        memoTvModified.setText(memoTvModified.getText()+memoData.lastModifiedDate);
+        memoTvTitle.setText(memoTvTitle.getText()+memoData.title);
+        memoTvContent.setText(memoData.content);
+
+        if(memoData.lastModifiedDate != null){
+            memoTvModified.setVisibility(View.VISIBLE);
         }
-        cursor.close();
-        db.close();
 
     }
 
