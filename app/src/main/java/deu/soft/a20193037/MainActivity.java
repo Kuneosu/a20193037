@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     MyAdapter adapter;
     List<MemoEntity> memoData;
     AppDatabase db;
+    boolean sort = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         memoList = (ListView) findViewById(R.id.memoList);
 
         // 첫 실행 시 데이터베이스로 리스트뷰 채우기
-        displayList();
+        displayList(sort);
 
         btnSearch = (Button) findViewById(R.id.btnSearch);
         tvSearch = (TextView) findViewById(R.id.tvSearch);
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
                 // 검색 단어를 입력하지 않았을 경우 예외처리
                 if(str.length() == 0){
                     Toast.makeText(getApplicationContext(), "검색단어가 없습니다.", Toast.LENGTH_SHORT).show();
-                    displayList();}
+                    displayList(sort);}
                 else
                     SearchList(str);
             }
@@ -89,16 +90,16 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == Activity.RESULT_OK){
-                        displayList();
+                        displayList(sort);
                     }
                 }});
 
     // 화면에 표시된 리스트뷰에 현재 데이터베이스에 있는 메모들을 불러와 어댑터로 부착
-    void displayList(){
+    void displayList(boolean sort){
         // db 변수에 데이터베이스 불러오기
         db = AppDatabase.getDBInstance(this);
         // memoData 변수에 데이터베이스에 저장된 메모 튜플을 모두 불러와 저장
-        memoData = db.memoDao().getAllMemos();
+        memoData = sort ? db.memoDao().getAllMemos() : db.memoDao().getAllMemosDesc();
         adapter = new MyAdapter();
         // 어댑터에 불러온 메모 데이터들 저장
         adapter.setData(memoData);
@@ -140,6 +141,47 @@ public class MainActivity extends AppCompatActivity {
             case R.id.devInfo:
                 // 개발자 정보 이벤트
                 showDialog();
+                return true;
+            case R.id.sort_menu:
+                sort = !sort;
+                item.setTitle(sort ? "NEW" : "OLD");
+                displayList(sort);
+                return true;
+            case R.id.dummy_data:
+                db = AppDatabase.getDBInstance(this);
+                db.memoDao().createMemo("오늘의 할일 (11/03)","오늘의 할일\n1. 임베디드 프로젝트 과제" +
+                        "\n2. 웹 프로그래밍 수업" +
+                        "\n3. 캡스톤 디자인 회의");
+                db.memoDao().createMemo("여행 일정","진주 여행 일정\n" +
+                        "13:00~15:00 진주성 투어\n" +
+                        "15:00~16:00 진주 남강 산책\n" +
+                        "16:00~18:00 부산으로 복귀\n");
+                db.memoDao().createMemo("캡스톤 디자인 일정","캡스톤 디자인 해야할 것\n" +
+                        "- 앱 디자인 확정\n" +
+                        "- 시작품 주문\n" +
+                        "- 어플리케이션 개발 파트 나누기\n" +
+                        "- 어플리케이션 개발 시작\n");
+                db.memoDao().createMemo("저녁 장볼거","바나나,우유,와인,치즈,소고기\n");
+                db.memoDao().createMemo("회식비 정산","1차 : 210,000원\n" +
+                        "2차 : 72,000원\n" +
+                        "3차 : 50,000원\n" +
+                        "합계 : 332,000원\n");
+                db.memoDao().createMemo("2023-2학기 수강 과목","1. 임베디드시스템\n" +
+                        "2. 데이터베이스 프로그래밍\n" +
+                        "3. 웹 프로그래밍\n" +
+                        "4. 운영체제\n" +
+                        "5. 캡스톤디자인\n" +
+                        "6. 지도교수세미나");
+                db.memoDao().createMemo("해야할 과제 정리","1. 임베디드 개인 프로젝트\n" +
+                        "2. 운영체제 개인 텀 프로젝트\n" +
+                        "3. 데이터베이스 팀 프로젝트\n" +
+                        "4. 캡스톤디자인 팀 프로젝트\n");
+                displayList(sort);
+                return true;
+            case R.id.delete_all:
+                db = AppDatabase.getDBInstance(this);
+                db.memoDao().deleteAllMemo();
+                displayList(sort);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

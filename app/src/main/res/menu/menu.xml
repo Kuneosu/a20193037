@@ -9,4 +9,16 @@
         android:id="@+id/devInfo"
         android:title="개발자 정보"
         app:showAsAction="never"/>
+    <item
+        android:id="@+id/sort_menu"
+        android:title="NEW"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/dummy_data"
+        android:title="더미 데이터 생성"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/delete_all"
+        android:title="모두 제거"
+        app:showAsAction="never"/>
 </menu>

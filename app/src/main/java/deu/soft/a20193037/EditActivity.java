@@ -75,7 +75,7 @@ public class EditActivity extends AppCompatActivity {
     void EditMemo(String title, String content,int id){
         db = AppDatabase.getDBInstance(this);
         db.memoDao().updateMemo(title,content,id);
-        setResult(Activity.RESULT_OK);
+
         finish();
     }
 
@@ -85,7 +85,7 @@ public class EditActivity extends AppCompatActivity {
                 .setPositiveButton("확인",new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        setResult(Activity.RESULT_OK);
+
                         finish();
                     }
                 })

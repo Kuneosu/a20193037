@@ -14,8 +14,11 @@ import java.util.List;
 @Dao
 public interface MemoDao {
 
-    @Query("SELECT * FROM memo20193037")
+    @Query("SELECT * FROM memo20193037 ORDER BY created_date desc")
     List<MemoEntity> getAllMemos();
+
+    @Query("SELECT * FROM memo20193037 ORDER BY created_date asc")
+    List<MemoEntity> getAllMemosDesc();
 
     // 검색 SQL 문
     // 매개변수 : 검색 내용
@@ -44,4 +47,7 @@ public interface MemoDao {
     @Query("UPDATE memo20193037 SET title=:title, content=:content, last_modified_date=CURRENT_TIMESTAMP WHERE id=:id")
     public void updateMemo(String title,String content,int id);
 
+    // 모두 삭제 SQL
+    @Query("DELETE FROM memo20193037")
+    public void deleteAllMemo();
 }

@@ -20,6 +20,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -73,7 +77,7 @@ public class MemoActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
-                setResult(Activity.RESULT_OK);
+                //setResult(Activity.RESULT_OK);
                 finish();
             }
         });
@@ -148,7 +152,7 @@ public class MemoActivity extends AppCompatActivity {
 
         if(System.currentTimeMillis()<=backKeyPressedTime + 2000){
             Log.d("CHECKSUM", "setResult: "+Activity.RESULT_OK);
-            setResult(Activity.RESULT_OK);
+            //setResult(Activity.RESULT_OK);
             finish();
         }
     }
